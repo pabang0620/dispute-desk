@@ -1,5 +1,5 @@
 import { config } from './config.js'
-import { paypalForSession } from './paypal/index.js'
+import { sandboxPaypal } from './paypal/index.js'
 import { HttpError } from './http.js'
 
 // PayPal webhooks CUSTOMER.DISPUTE.CREATED / UPDATED / RESOLVED (PLAN 5, VERIFY V7). Only a verified event is accepted.
@@ -10,8 +10,8 @@ const recent = []
 export const webhookStatus = () => ({ enabled: Boolean(config.paypalWebhookId && config.paypalClientId), count: recent.length, last: recent.at(-1) || null })
 
 export async function handleWebhook(req, res) {
-  const client = paypalForSession()
-  if (!config.paypalWebhookId || !client.verifyWebhook) {
+  const client = sandboxPaypal()
+  if (!config.paypalWebhookId || !client?.verifyWebhook) {
     throw new HttpError(501, 'Webhooks need a PayPal sandbox app and PAYPAL_WEBHOOK_ID. The app polls the Disputes API instead.')
   }
   const event = req.body

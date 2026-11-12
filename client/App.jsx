@@ -24,6 +24,37 @@ const SCENARIO_FIELDS = [
   { id: 'offerTotal', format: 'currencyFormat', name: 'Offer total', formatOptions: USD },
   { id: 'offerWins', format: 'textFormat', name: 'Result' },
 ]
+const STEPS = ['Read the plan', 'Pick an action per case', 'Approve what PayPal will do']
+
+// Which of the three steps the seller is on, read from the cards the server already holds.
+function currentStep(data, selectedId) {
+  const cards = data?.cards || []
+  const mine = cards.filter((c) => c.disputeId === selectedId)
+  if (mine.some((c) => c.status === 'PENDING')) return 3
+  if (mine.some((c) => c.status === 'EXECUTED')) return 4
+  return cards.length ? 2 : 1
+}
+
+function StepStrip({ step }) {
+  return (
+    <ol className="dd-steps" aria-label="How to use Dispute Desk">
+      {STEPS.map((label, i) => {
+        const n = i + 1
+        const cls = n === step ? 'is-on' : n < step ? 'is-done' : ''
+        return (
+          <li key={label} className={`dd-step ${cls}`} aria-current={n === step ? 'step' : undefined}>
+            <b>{n}</b>
+            {label}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+// On a phone the 340px AI panel would cover the whole canvas: start it collapsed there (the toggle still opens it).
+const startState = typeof window !== 'undefined' && window.innerWidth < 760 ? { ...initialState, panels: { ...initialState.panels, ai: { ...initialState.panels.ai, collapsed: true } } } : initialState
+
 const TABS = [
   ['queue', "Today's queue"],
   ['plan', 'Rate plan'],
@@ -51,6 +82,7 @@ export default function App() {
   const error = useStore((s) => s.error)
   const toast = useStore((s) => s.toast)
   const aiSource = useStore((s) => s.aiSource)
+  const selectedId = useStore((s) => s.selectedId)
   const [page, setPage] = useState('queue')
   const [pages, setPages] = useState(['queue', 'plan'])
   const [recorded, setRecorded] = useState(false)
@@ -87,10 +119,7 @@ export default function App() {
       <div className="dd-app">
         <header className="dd-header">
           <div className="dd-brand">
-            <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-              <rect width="32" height="32" rx="7" fill="#0b5cad" />
-              <path d="M8 21h16M10 21v-7m6 7V9m6 12v-5" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-            </svg>
+            <img className="brand-logo" src="/logo-512.png" width="32" height="32" alt="Dispute Desk" />
             <span>Dispute Desk</span>
             <span className="dd-store">{data?.view?.store ? 'Juniper Home' : ''}</span>
           </div>
@@ -109,6 +138,7 @@ export default function App() {
           <div className="dd-actions">
             {data ? (
               <span className="dd-modes" title="Where Claude and PayPal calls go">
+                <i className={`dd-dot ${data.modes.paypal !== 'mock' || ['live', 'account'].includes(data.modes.llm) ? 'is-live' : ''}`} aria-hidden="true" />
                 Claude: {{ live: 'Anthropic API', account: 'Claude Sonnet (local account)' }[data.modes.llm] || 'recorded runs, else scripted stand-in'} · PayPal: {{ sandbox: 'sandbox', hybrid: data.sandboxCase ? `sandbox for case A (${data.sandboxCase}), stand-in for B and C` : 'sandbox demo mode, all real cases used: stand-in' }[data.modes.paypal] || 'sandbox stand-in'}
               </span>
             ) : null}
@@ -135,6 +165,7 @@ export default function App() {
           </div>
         ) : null}
         {error ? <div className="dd-banner is-error">Could not reach the server: {error}</div> : null}
+        {data && page === 'queue' ? <StepStrip step={currentStep(data, selectedId)} /> : null}
         <main className="dd-main">
           {studioData ? (
             <AgStudio
@@ -142,7 +173,7 @@ export default function App() {
               style={{ height: '100%', width: '100%' }}
               mode="edit"
               data={studioData}
-              initialState={initialState}
+              initialState={startState}
               widgets={widgets}
               theme={disputeTheme}
               ai={ai}

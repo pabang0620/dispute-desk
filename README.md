@@ -1,4 +1,10 @@
+<img src="client/public/logo-512.png" width="128" alt="logo" />
+
 # Dispute Desk
+
+Dispute Desk is for the owner of a small US online store who answers PayPal disputes alone and sits at a 1.3% dispute rate. It shows that a $20 offer looks $31.78 cheaper per case, yet refunding that case is $43.22 cheaper for the account, because a declined offer would push the store to 1.75% and over PayPal's 1.5% High Volume line, while the refund keeps it at 1.47%. These are the app's own demo numbers (expected cost over the whole queue: $84.52 for the refund plan against $127.74 for the case-by-case plan).
+
+**Try it:** https://dispute-desk.35-216-2-121.sslip.io (hosted demo: offline stand-ins for PayPal, recorded Claude Sonnet runs; no login).
 
 Dispute Desk keeps open PayPal inquiries from pushing a seller over PayPal's 1.5% High Volume line: it projects the dispute rate if they become claims, plans which to settle at the inquiry stage and which to fight, prices every option with PayPal's own fee rules, drafts the reply, and sends nothing until the seller approves.
 
@@ -146,7 +152,7 @@ The sandbox create-dispute API is closed to this kind of app, so the buyer side 
 ## Tests
 
 ```bash
-npm test      # 96 tests, offline, no keys needed
+npm test      # offline, no keys needed
 npm run build
 ```
 

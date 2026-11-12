@@ -155,6 +155,7 @@ export function buildPlanView({ plan, ledger, queue, asOf }) {
     recommended: { id: recommendedId, choices: best.choices, total: round2(best.result.total), text: describeChoices(cases, best.choices, offerAmount) },
     otherPeriod: { period: otherPeriod, bestKey: otherBest.key, bestTotal: round2(otherBest.result.total), changesAdvice: otherBest.key !== best.key },
     breakEven,
+    headline: composeHeadline({ cases, best, preset, plans, offerAmount, run, current, assumptions }),
     sentence: composeSentence({ current, cases, best, preset, run, offerAmount, plan, asOf }),
     claimsStage: queue.claims.map((c) => ({ disputeId: c.disputeId, kind: c.kind, amount: c.amount, escalatedOn: c.escalatedOn, counts: countsForWindow(c.escalatedOn, plan.windowAssumption) })),
     version: plan.version,
@@ -222,6 +223,35 @@ function roundOptions(o, amount) {
       fee: o.fight.fee,
       rateDelta: amount,
     },
+  }
+}
+
+// One-line conclusion for the top of the planner: what looks cheaper per case versus what is cheaper for the account.
+// The sentence names what the recommended plan actually does with that case (refund or fight) and its real total.
+const HEADLINE_VERB = { refund: 'refunding', fight: 'fighting' }
+function composeHeadline({ cases, best, preset, plans, offerAmount, run, current }) {
+  const offered = cases.find((c) => preset[c.label].action === 'offer')
+  if (!offered) return null
+  const action = best.choices[offered.label].action
+  const verb = HEADLINE_VERB[action]
+  if (!verb) return null
+  const caseView = current.decisions[offered.label].options
+  // Per case is what the case-by-case plan compares: the offer against a refund.
+  const perCase = round2(caseView.refund.cost - caseView.offer.expectedCost)
+  const x = plans.find((p) => p.id === 'X')
+  const accountSaving = round2(x.total - best.result.total)
+  if (perCase <= 0 || accountSaving <= 0) return null
+  const bestRun = run(best.choices)
+  const bestPct = Math.max(...bestRun.branches.map((b) => Number(pctString(b.rate))))
+  const where = bestRun.pHighVolume < 1e-9 ? `keeps you at ${bestPct.toFixed(2)}%` : `can still reach ${bestPct.toFixed(2)}%`
+  return {
+    perCase,
+    account: accountSaving,
+    offerLabel: offered.label,
+    offerAmount,
+    action,
+    bestPct: bestPct.toFixed(2),
+    text: `Per case, the $${offerAmount} offer on ${offered.label} looks $${perCase.toFixed(2)} cheaper${action === 'fight' ? ' than refunding' : ''}. For the account, ${verb} ${offered.label} is $${accountSaving.toFixed(2)} cheaper and ${where}.`,
   }
 }
 

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useStore, loadDispute, createCard, editCard, approveCard, rejectCard, buyerAccepts, draftWithClaude } from '../store.js'
-import { usd, KIND_LABEL, untilText, LLM_LABEL } from './format.js'
-
-const EDITABLE = { send_message: 'message', make_offer: 'note', escalate: 'note', provide_evidence: 'notes', provide_supporting_info: 'notes' }
-const NEXT_STEP = { accept_claim: 'Approve & refund', make_offer: 'Approve & send offer', escalate: 'Approve & escalate', send_message: 'Approve & send message', provide_evidence: 'Approve & submit evidence', provide_supporting_info: 'Approve & submit info', adjudicate: 'Approve sandbox decision', require_evidence: 'Approve sandbox call' }
+import { useStore, loadDispute, createCard, buyerAccepts, draftWithClaude } from '../store.js'
+import { usd, KIND_LABEL } from './format.js'
+import ApprovalCard from './ApprovalCard.jsx'
 
 export default function DecisionCard() {
   const selectedId = useStore((s) => s.selectedId)
@@ -34,13 +32,14 @@ export default function DecisionCard() {
   const lastDone = [...detail.cards].reverse().find((x) => x.status === 'EXECUTED' || x.status === 'INVALID' || x.status === 'FAILED')
   const resolved = d.dispute_state === 'RESOLVED'
   const buyerTurn = d.dispute_state === 'REQUIRED_OTHER_PARTY_ACTION' && d.offer?.seller_offered_amount
-  const simulated = data.tables.disputes.find((x) => x.id === d.dispute_id)?.simulated
+  const row = data.tables.disputes.find((x) => x.id === d.dispute_id)
+  const simulated = row?.simulated
+  const order = detail.checklist.find((i) => i.id === 'order' && i.present)?.value
 
   return (
     <div className="dd-widget dd-decision">
       <div className="dd-title">
-        Decision Card: {data.tables.disputes.find((x) => x.id === d.dispute_id)?.label || ''}{' '}
-        {KIND_LABEL[detail.kind]} {usd(d.dispute_amount.value)}
+        Decision Card: {row?.label || ''} {KIND_LABEL[detail.kind]} <span className="dd-num">{usd(d.dispute_amount.value)}</span>
       </div>
       <div className="dd-sub">
         {d.dispute_id} · stage {d.dispute_life_cycle_stage} · {d.dispute_state.replaceAll('_', ' ').toLowerCase()}
@@ -51,12 +50,14 @@ export default function DecisionCard() {
       <div className="dd-checklist">
         {detail.checklist.map((i) => (
           <div key={i.id} className={`dd-check ${i.present ? 'is-yes' : 'is-no'}`} title={i.sourceId || 'no source record'}>
-            <span aria-hidden="true">{i.present ? '[x]' : '[ ]'}</span> {i.label}
+            <span className={`dd-tick ${i.present ? '' : 'is-no'}`} aria-hidden="true" />
+            <span className="dd-sr">{i.present ? 'found: ' : 'missing: '}</span>
+            <b>{i.label}</b>
             {i.value ? <em> {String(i.value).slice(0, 70)}</em> : null}
             {i.sourceId ? <code>{i.sourceId}</code> : null}
           </div>
         ))}
-        <div className="dd-sub">Store records are demo store data.</div>
+        <div className="dd-sub">Store records are demo store data. Every item names the record it came from.</div>
       </div>
       {c ? <Options c={c} p={data.view.assumptions.p} /> : null}
       {resolved ? (
@@ -67,7 +68,7 @@ export default function DecisionCard() {
         </div>
       ) : null}
       {!detail.writable ? <div className="dd-callout">Writes are limited to your reserved cases. Use "Claim my cases" at the top.</div> : null}
-      {pending ? <CardEditor card={pending} busy={busy} work={drafts[pending.disputeId]?.cardId === pending.id ? drafts[pending.disputeId] : null} /> : !resolved && detail.writable ? <Starters c={c} d={d} rels={rels} detail={detail} buyerTurn={buyerTurn} busy={busy} /> : null}
+      {pending ? <ApprovalCard card={pending} busy={busy} work={drafts[pending.disputeId]?.cardId === pending.id ? drafts[pending.disputeId] : null} d={d} kind={detail.kind} label={row?.label} order={order} /> : !resolved && detail.writable ? <Starters c={c} d={d} rels={rels} detail={detail} buyerTurn={buyerTurn} busy={busy} /> : null}
       {lastDone ? (
         <div className={`dd-last ${lastDone.status === 'EXECUTED' ? 'is-ok' : 'is-bad'}`}>
           {lastDone.label}: {lastDone.status.toLowerCase()} {lastDone.notice ? `· ${lastDone.notice}` : ''}
@@ -157,61 +158,4 @@ function waitingText(next) {
   const at = new Date(next.at)
   const secs = Math.max(0, Math.round((at.getTime() - Date.now()) / 1000))
   return `PayPal is reviewing the last action. Waiting for ${NEXT_STEP_TEXT[next.step] || 'the next step'}, expected at ${at.toLocaleTimeString()} (about ${secs} s; the stand-in runs the observed sandbox time ${next.timeScale}x faster).`
-}
-
-// The chip names who wrote the draft: a scripted stand-in is never called Claude.
-function draftedBy(drafter) {
-  if (!drafter) return 'drafted by the agent'
-  if (drafter.source === 'mock') return 'drafted by offline stand-in'
-  if (drafter.source === 'recorded') return drafter.label
-  return `drafted by ${drafter.label}`
-}
-
-function CardEditor({ card, busy, work }) {
-  const field = EDITABLE[card.action]
-  const [text, setText] = useState(card.draft ?? '')
-  useEffect(() => setText(card.draft ?? ''), [card.id, card.hash, card.draft])
-  const dirty = field && text !== (card.draft ?? '')
-  const dl = card.deadline
-  return (
-    <div className="dd-approval">
-      <div className="dd-approval-head">
-        <b>{card.label}</b>
-        {card.createdBy === 'claude' ? <span className="dd-chip">{draftedBy(card.drafter)}</span> : null}
-        {card.sandboxSimulation ? <span className="dd-chip is-sim">sandbox simulation</span> : null}
-      </div>
-      {work ? (
-        <div className="dd-sub" title="The tool calls Claude made on the server. The checklist and every amount come from code.">
-          {work.source === 'mock' ? 'Offline stand-in (scripted, not a model)' : `Claude (${work.label || LLM_LABEL[work.source] || work.source})`} read: {work.steps.map((x) => x.tool + (x.ok ? '' : ' (rejected)')).join(' > ')}
-        </div>
-      ) : null}
-      {card.payload.offer_amount ? <div className="dd-sub">Offer {usd(card.payload.offer_amount.value)} · {card.payload.offer_type}</div> : null}
-      {card.payload.tracking_info ? <div className="dd-sub">Tracking {card.payload.tracking_info[0].carrier_name} {card.payload.tracking_info[0].tracking_number}</div> : null}
-      {card.files.length ? <div className="dd-sub">Attachment: {card.files.map((f) => `${f.name} (${f.bytes} bytes)`).join(', ')}</div> : null}
-      {field ? (
-        <textarea className="dd-draft" aria-label="Draft text" rows={4} value={text} onChange={(e) => setText(e.target.value)} onBlur={() => dirty && editCard(card.id, { [field]: text }).catch(() => {})} />
-      ) : (
-        <div className="dd-sub">Request body: <code>{JSON.stringify(card.payload)}</code></div>
-      )}
-      {dl.warn ? <div className="dd-callout dd-bad">{dl.blocked ? 'Under 30 minutes to the PayPal deadline: messages and offers are blocked.' : `Under 2 hours to the PayPal deadline (${untilText(dl.remainingMs)} left).`}</div> : null}
-      {card.notice ? <div className="dd-callout">{card.notice}</div> : null}
-      <div className="dd-hashline">
-        payload sha256 <code>{card.hashShort}..</code> approved by: {card.approvedBy || '-'}
-        {dirty ? ' · edited, click Update hash' : ''}
-      </div>
-      <div className="dd-btnrow">
-        <button type="button" className="dd-btn is-primary" disabled={busy || dirty} onClick={() => approveCard(card).catch(() => {})}>
-          {NEXT_STEP[card.action]}
-        </button>
-        {field ? (
-          <button type="button" className="dd-btn" disabled={busy || !dirty} onClick={() => editCard(card.id, { [field]: text }).catch(() => {})}>
-            Update hash
-          </button>
-        ) : null}
-        <button type="button" className="dd-btn" disabled={busy} onClick={() => rejectCard(card.id).catch(() => {})}>
-          Reject
-        </button>
-      </div>
-    </div>
-  )
 }

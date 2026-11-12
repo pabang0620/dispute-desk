@@ -40,6 +40,7 @@ export default function DisputeRatePlanner() {
           </a>
         </div>
       </div>
+      {view.headline ? <div className="dd-sentence dd-headline">{view.headline.text}</div> : null}
       <div className="dd-source">
         source: {view.ledgerSource} ({view.store.salesCount} sales, {usd(view.store.netSales)} net in 3 months). Disputes are PayPal sandbox disputes. This rate is our recalculation, not PayPal's official number.
       </div>

@@ -123,6 +123,10 @@ export function createHybridPaypal(candidates, real = live()) {
   }
 }
 
+// The sandbox client itself (null without keys). Webhooks are verified with it in sandbox and in sandbox demo mode,
+// where a session's client is the hybrid one (case A real, B and C stand-in) and has no verifyWebhook of its own.
+export const sandboxPaypal = () => (config.paypalClientId && config.paypalClientSecret ? live() : null)
+
 // Mock mode gives every visitor session its own simulator so one visitor's refund never changes another's demo.
 // Sandbox mode shares one client; the approval layer limits writes to cases reserved for the session.
 export function paypalForSession() {

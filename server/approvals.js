@@ -174,15 +174,17 @@ function withDefaultParams(action, params = {}, dispute, order) {
 
 export async function editCard(session, cardId, params) {
   const card = mustCard(session, cardId)
-  if (card.status !== 'PENDING') throw new HttpError(409, `Card is ${card.status}; only a pending card can be edited.`)
-  const dispute = await session.paypal.getDispute(card.disputeId)
-  const merged = { ...card.params, ...params }
-  const { payload, files } = buildRequest(card.action, merged, dispute)
-  const hash = requestHash({ disputeId: card.disputeId, action: card.action, payload, files })
-  const changed = hash !== card.hash
-  Object.assign(card, { params: merged, payload, files, hash, draft: draftFor(card.action, payload), token: randomBytes(12).toString('hex'), updatedAt: new Date().toISOString(), approvedBy: null, approvedAt: null })
-  session.audit.add({ actor: 'seller', event: changed ? 'card_edited_approval_voided' : 'card_edit_no_change', cardId, disputeId: card.disputeId, hash })
-  return card
+  return withLock(`dispute:${card.disputeId}`, async () => {
+    if (card.status !== 'PENDING') throw new HttpError(409, `Card is ${card.status}; only a pending card can be edited.`)
+    const dispute = await session.paypal.getDispute(card.disputeId)
+    const merged = { ...card.params, ...params }
+    const { payload, files } = buildRequest(card.action, merged, dispute)
+    const hash = requestHash({ disputeId: card.disputeId, action: card.action, payload, files })
+    const changed = hash !== card.hash
+    Object.assign(card, { params: merged, payload, files, hash, draft: draftFor(card.action, payload), token: randomBytes(12).toString('hex'), updatedAt: new Date().toISOString(), approvedBy: null, approvedAt: null })
+    session.audit.add({ actor: 'seller', event: changed ? 'card_edited_approval_voided' : 'card_edit_no_change', cardId, disputeId: card.disputeId, hash })
+    return card
+  })
 }
 
 export function rejectCard(session, cardId) {

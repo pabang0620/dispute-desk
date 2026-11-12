@@ -124,3 +124,7 @@ Setup for all items: `cp .env.example .env`, fill `PAYPAL_CLIENT_ID`, `PAYPAL_CL
 
 - Issue the 45-day trial key for the day you deploy, note the date, put the key in `VITE_AG_STUDIO_LICENSE` and rebuild. A key issued on 2026-11-12 covers the judging period (2026-12-02 to 2026-12-16).
 - Without the key the app works and Studio logs a trial watermark message.
+
+## Hosting
+
+- **Result: PASS 2026-11-12.** https://dispute-desk.35-216-2-121.sslip.io on a Google Cloud VM (nginx, Let's Encrypt, systemd). Mode: offline stand-ins for PayPal, recorded Claude Sonnet runs. `GET /` and the health endpoint return 200 over https. Walked headless against the https host: Judge walkthrough steps 1 to 7 (planner 1.30%/1.82%, chat comparison 74.2%, refund on case A resolved in about 4 s, Draft with Claude, claim, recorded run, reset).
