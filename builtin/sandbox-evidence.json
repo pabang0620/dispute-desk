@@ -1,0 +1,70 @@
+{
+  "source": "VERIFY.md",
+  "checkedOn": "2026-11-12",
+  "pass": [
+    {
+      "id": "R24",
+      "text": "Sandbox demo mode: the walkthrough refund on a real sandbox case. PP-R-KKG-10199698 (SNAD, USD 66.12) played case A with the same plan numbers as offline; Refund, Approve & refund at 06:11:50Z, RESOLVED_BUYER_FAVOUR / SELLER_ISSUED_REFUND at 06:14:03Z (2m13s)."
+    },
+    {
+      "id": "R15",
+      "text": "Full refund (accept-claim) through the app on a not-as-described inquiry: PP-R-JZX-10199650, USD 66.12, RESOLVED / SELLER_ISSUED_REFUND in about 1m40s."
+    },
+    {
+      "id": "R19",
+      "text": "Full refund through the app at the claim (CHARGEBACK) stage: PP-R-VBD-10199646, USD 41.37, RESOLVED / SELLER_ISSUED_REFUND in about 1m45s."
+    },
+    {
+      "id": "R20",
+      "text": "Agent Toolkit accept_dispute_claim called directly with note refund_issued on PP-R-MED-10199654 returned success. The app itself sends the same JSON through REST."
+    },
+    {
+      "id": "R8",
+      "text": "Shipment tracking read for a captured sandbox order (0LK31272JJ185121J, DHL TRK41370001, status SHIPPED)."
+    },
+    {
+      "id": "R6",
+      "text": "Filing sandbox disputes through the buyer web flow from this machine (INR and SNAD cases). The hosted-machine step was not tested."
+    },
+    {
+      "id": "R21",
+      "text": "Claude adapter through a local Claude Code account (Sonnet): Studio chat delegation and Draft with Claude ran end to end, and the 30-case evaluation ran once. The hosted Anthropic API streaming path was not run."
+    },
+    {
+      "id": "R23",
+      "text": "Seller writes through the app's approval cards: send_message on PP-R-GEN-10199701 (second approval 409), make_offer USD 20 on PP-R-TDE-10199710 (seller_offered_amount 20.00), escalate on PP-R-CYV-10199706 (CHARGEBACK in 172 s) then provide_evidence with tracking (200)."
+    },
+    {
+      "id": "R3",
+      "text": "Transaction Search through the Agent Toolkit list_transactions: 98 transactions for the last 30 days, including the R15 refund 15Y38875AS5348512 of capture 3KR23759SF469520Y. The app has no transactions panel."
+    }
+  ],
+  "partial": [
+    {
+      "id": "R17",
+      "text": "Require-evidence worked once on a CHARGEBACK case (about 30 s, +3 days). Escalating reserved cases on a chosen date was not run."
+    }
+  ],
+  "notClaimed": [
+    {
+      "id": "R7",
+      "text": "Webhook signature check: not run (needs a public https URL)."
+    },
+    {
+      "id": "R9",
+      "text": "Sandbox buyer accepting an offer: not automated. The \"buyer accepts\" button works on the stand-in only."
+    },
+    {
+      "id": "R10",
+      "text": "A sandbox case past its reply deadline: not run yet."
+    },
+    {
+      "id": "R18",
+      "text": "Pool worker restart: not run."
+    },
+    {
+      "id": "R22",
+      "text": "AG Studio trial licence: not issued, so Studio shows a trial watermark."
+    }
+  ]
+}

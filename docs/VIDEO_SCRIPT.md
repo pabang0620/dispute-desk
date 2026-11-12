@@ -1,0 +1,33 @@
+# Dispute Desk: demo video script (2:45)
+
+Recording state, one command:
+
+```bash
+npm install
+npm run demo:video      # builds, ignores every key (FORCE_MOCK=1), serves http://localhost:3002
+```
+
+Open http://localhost:3002 in a fresh browser window at 1440x900. The page starts at step 1. To start over between takes, click **Reset demo** and reload the page (the chat panel keeps its history until the reload).
+
+What the video shows is what a judge sees offline: the PayPal Disputes API stand-in (chip "PayPal: sandbox stand-in") and the recorded Claude Sonnet run (chip "Last AI answer: Recorded run: Claude Sonnet, 2026-11-12"). Real sandbox results appear only where the app shows recorded sandbox responses (Recorded run window, step 7). Do not narrate the stand-in as the real sandbox or the replay as a live model.
+
+Step names and numbers match README "Judge walkthrough" and the Devpost testing instructions.
+
+Scenes left out on purpose: "Sandbox: buyer accepts offer" (VERIFY R9, not automated in the sandbox), webhooks (R7 not run), the transactions panel (R3 FAIL), offer/escalate/send message through the app on the sandbox (R23 not run).
+
+| Time | Step | On screen (action) | Narration / caption (English) | Criterion |
+|---|---|---|---|---|
+| 0:00-0:12 | 1 First screen | The app as it loads. Point at the banner "Path 0" and the gauges. | "PayPal charges a seller with more than 100 sales and a dispute rate of 1.5% or more a $30 High Volume Dispute Fee per dispute instead of $15, and it is not refunded even when the seller wins." | Potential Impact |
+| 0:12-0:25 | 2 Dispute Rate Planner | Hover the three gauges: 1.30% counted so far, 1.82% if all three open inquiries become claims, 1.47% / 1.75% for the per-case plan. Point at the "Official rate" link. | "This store is at 1.30%. If its three open inquiries escalate, it lands at 1.82%. An inquiry settled with the buyer before it becomes a claim is not counted. The rate shown is our recalculation; the official one is linked." | Quality of Idea |
+| 0:25-0:55 | 3 Ask the Studio chat | Click the starter "Buyer accepts $20?". Show "Delegated to Dispute analyst", then the new "Acceptance comparison" page: $84.52 / $127.74 at 50%, $84.52 / $92.00 at 70%, $56.27 at 90%. Zoom on the chip "Last AI answer: Recorded run: Claude Sonnet, 2026-11-12". | "Inside the AG Studio dashboard, Studio's lead agent hands the question to our dispute-analyst agent. In this recorded Claude Sonnet run it chose two server calculators, then put the comparison on the dashboard by id, so every number comes from code. A $20 offer only wins above 74.2% acceptance." | Technological Implementation, AG Grid prize |
+| 0:55-1:20 | 4 Refund on case A | Today's queue. Click **Refund** on case A: one line at 1.47%, plan table Y $84.52, X $127.74, Z $209.71. Drag "Buyer accepts the offer" to 80%: the recommended chip moves to X at $74.13. Click "Dec only": the break-even reads 41.4%. | "Case by case, the $20 offer looks cheapest. For the account, a declined offer escalates to 1.75%, so refunding A is $43.22 cheaper at 50%. The assumptions are the seller's, and the screen shows where the advice flips." | Quality of Idea, Design |
+| 1:20-1:40 | 5 Draft with Claude | Click case A in the planner, then **Draft with Claude** in the Decision Card. Show the line "Claude (Recorded run: Claude Sonnet, 2026-11-12) read: get_dispute_detail > get_store_order > draft_response" and the checklist with record ids. Change one word in the draft, click **Update hash**: the sha256 prefix changes. | "The evidence checklist is built by code from the dispute, order and tracking records. Claude drafts from those records only, and the server rejects any dollar amount it did not compute. Edit one word and the approval hash changes." | Technological Implementation |
+| 1:40-2:05 | 5 Approve a refund | Click **Reject**, then **Refund $66.12**, then **Approve & refund**. Show the waiting line "Waiting for the case to resolve, expected at ..." then RESOLVED / SELLER_ISSUED_REFUND. The action buttons disappear; "Counted so far" stays 1.30%. | "Nothing goes to PayPal until the seller approves this exact request. The stand-in runs the 2-minute sandbox refund we measured 40 times faster. The case resolves at the inquiry stage and never enters the dispute rate." | Technological Implementation, Potential Impact |
+| 2:05-2:20 | 6 Deadline Runway and Rate plan | Click the bar of case B in Deadline Runway: the Open disputes grid shows one row, "Clear filter" appears. Click the **Rate plan** tab (second saved layout). | "Custom AG Studio widgets share Studio's data engine: a bar cross-filters the grid. Saved layouts give the plan its own page." | AG Grid prize, Design |
+| 2:20-2:38 | 7 Recorded run and Sandbox evidence | Click **Recorded run**. Step through the full refund run (real sandbox responses, 2026-11-11). Scroll to **Sandbox evidence**: R15 PASS (PP-R-JZX-10199650 refunded and resolved in about 1m40s through the app), R19 PASS. Open **Recorded AI runs**. | "These are real PayPal sandbox responses. Through the app we refunded a sandbox inquiry and a claim-stage case, each resolved in under two minutes. Everything not verified is listed as not claimed." | Presentation, Technological Implementation |
+| 2:38-2:45 | 7 Reset demo | Close the window, click **Reset demo**. Caption: "Open source, MIT. Try it: no login." | "Dispute Desk: plan the whole dispute queue, not one case." | Presentation |
+
+Checks before recording:
+- `npm test` and `npm run build` pass.
+- Header chip reads "Claude: recorded runs, else scripted stand-in · PayPal: sandbox stand-in".
+- Ask the chat before touching the planner (step 3 before step 4). After planner changes the recorded run no longer matches, and the chat answers with the scripted stand-in, labelled as such.

@@ -1,0 +1,483 @@
+{
+ "note": "Recorded sandbox requests and responses from review/dispute_probe/calls.log, 2026-11-11. Fields trimmed; test account emails replaced.",
+ "runs": [
+  {
+   "id": "full-refund",
+   "title": "Full refund at the inquiry stage (item not received)",
+   "recordedOn": "2026-11-11",
+   "dispute": "PP-R-HOV-10198909",
+   "steps": [
+    {
+     "title": "Dispute waits for the seller",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-HOV-10198909",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-HOV-10198909",
+      "create_time": "2026-11-11T14:02:38.644Z",
+      "update_time": "2026-11-11T14:06:04.094Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+      "status": "WAITING_FOR_SELLER_RESPONSE",
+      "dispute_state": "REQUIRED_ACTION",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "45.00"
+      },
+      "dispute_life_cycle_stage": "INQUIRY",
+      "dispute_channel": "INTERNAL",
+      "seller_response_due_date": "2026-12-01T14:02:38.644Z",
+      "allowed_response_options": {
+       "accept_claim": {
+        "accept_claim_types": [
+         "PARTIAL_REFUND",
+         "REFUND"
+        ]
+       },
+       "make_offer": {
+        "offer_types": [
+         "REFUND"
+        ]
+       }
+      },
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/send-message",
+        "rel": "send_message",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/escalate",
+        "rel": "escalate",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/make-offer",
+        "rel": "make_offer",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/accept-claim",
+        "rel": "accept_claim",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/provide-evidence",
+        "rel": "provide_evidence",
+        "method": "POST",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:02:38.644Z",
+        "notes": "Ordered two weeks ago, nothing arrived and the seller never sent tracking."
+       },
+       {
+        "evidence_type": "PROOF_OF_FULFILLMENT",
+        "source": "REQUESTED_FROM_SELLER",
+        "date": "2026-11-11T14:06:04.094Z"
+       }
+      ]
+     },
+     "note": "Links list accept_claim, make_offer, escalate, provide_evidence, send_message."
+    },
+    {
+     "title": "Seller approves a full refund",
+     "request": {
+      "method": "POST",
+      "path": "/v1/customer/disputes/PP-R-HOV-10198909/accept-claim",
+      "body": {
+       "note": "refund_issued"
+      }
+     },
+     "status": 200,
+     "response": {
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909",
+        "rel": "detail",
+        "method": "GET",
+        "encType": "application/json"
+       }
+      ]
+     },
+     "note": "JSON {\"note\":\"refund_issued\"}, the same body the Agent Toolkit tool sends."
+    },
+    {
+     "title": "PayPal reviews the refund",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-HOV-10198909",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-HOV-10198909",
+      "create_time": "2026-11-11T14:02:38.644Z",
+      "update_time": "2026-11-11T14:08:03.612Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+      "status": "UNDER_REVIEW",
+      "dispute_state": "UNDER_PAYPAL_REVIEW",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "45.00"
+      },
+      "dispute_life_cycle_stage": "INQUIRY",
+      "dispute_channel": "INTERNAL",
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909/provide-evidence",
+        "rel": "provide_evidence",
+        "method": "POST",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:02:38.644Z",
+        "notes": "Ordered two weeks ago, nothing arrived and the seller never sent tracking."
+       },
+       {
+        "evidence_type": "OTHER",
+        "source": "SUBMITTED_BY_SELLER",
+        "date": "2026-11-11T14:07:31.475Z",
+        "notes": "refund_issued"
+       },
+       {
+        "evidence_type": "PROOF_OF_FULFILLMENT",
+        "source": "REQUESTED_FROM_SELLER",
+        "date": "2026-11-11T14:08:03.612Z"
+       }
+      ]
+     },
+     "note": "The dispute is UNDER_PAYPAL_REVIEW and offers only self and one action."
+    },
+    {
+     "title": "Resolved about 2 minutes later",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-HOV-10198909",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-HOV-10198909",
+      "create_time": "2026-11-11T14:02:38.644Z",
+      "update_time": "2026-11-11T14:09:33.366Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+      "status": "RESOLVED",
+      "dispute_state": "RESOLVED",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "45.00"
+      },
+      "dispute_life_cycle_stage": "INQUIRY",
+      "dispute_channel": "INTERNAL",
+      "dispute_outcome": {
+       "outcome_code": "RESOLVED_BUYER_FAVOUR",
+       "outcome_reason": "SELLER_ISSUED_REFUND",
+       "amount_refunded": {
+        "currency_code": "USD",
+        "value": "45.00"
+       }
+      },
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-HOV-10198909",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:02:38.644Z",
+        "notes": "Ordered two weeks ago, nothing arrived and the seller never sent tracking."
+       },
+       {
+        "evidence_type": "OTHER",
+        "source": "SUBMITTED_BY_SELLER",
+        "date": "2026-11-11T14:07:31.475Z",
+        "notes": "refund_issued"
+       }
+      ]
+     },
+     "note": "Outcome RESOLVED_BUYER_FAVOUR / SELLER_ISSUED_REFUND. An inquiry settled this way never entered the dispute rate."
+    }
+   ]
+  },
+  {
+   "id": "fight-path",
+   "title": "Fight path to a seller-favour ending (sandbox simulation)",
+   "recordedOn": "2026-11-11",
+   "dispute": "PP-R-EKV-10198910",
+   "steps": [
+    {
+     "title": "Chargeback stage, evidence requested",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-EKV-10198910",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-EKV-10198910",
+      "create_time": "2026-11-11T14:04:20.668Z",
+      "update_time": "2026-11-11T14:16:22.985Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+      "status": "WAITING_FOR_SELLER_RESPONSE",
+      "dispute_state": "REQUIRED_ACTION",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "55.00"
+      },
+      "dispute_life_cycle_stage": "CHARGEBACK",
+      "dispute_channel": "INTERNAL",
+      "seller_response_due_date": "2026-11-21T14:59:59.000Z",
+      "allowed_response_options": {
+       "accept_claim": {
+        "accept_claim_types": [
+         "REFUND",
+         "PARTIAL_REFUND",
+         "REFUND_WITH_RETURN",
+         "REFUND_WITH_RETURN_SHIPMENT_LABEL"
+        ]
+       }
+      },
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/accept-claim",
+        "rel": "accept_claim",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/provide-evidence",
+        "rel": "provide_evidence",
+        "method": "POST",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:04:20.668Z",
+        "notes": "Please help, wrong material."
+       },
+       {
+        "evidence_type": "PROOF_OF_REFUND",
+        "source": "REQUESTED_FROM_SELLER",
+        "date": "2026-11-11T14:16:22.985Z"
+       },
+       {
+        "evidence_type": "OTHER",
+        "source": "REQUESTED_FROM_SELLER",
+        "date": "2026-11-11T14:16:22.985Z"
+       }
+      ]
+     },
+     "note": "Escalation moved the dispute to the CHARGEBACK stage; PayPal asked for PROOF_OF_REFUND or OTHER."
+    },
+    {
+     "title": "Seller submits evidence (OTHER + PDF)",
+     "request": {
+      "method": "POST",
+      "path": "/v1/customer/disputes/PP-R-EKV-10198910/provide-evidence",
+      "body": {
+       "multipart": true
+      }
+     },
+     "status": 200,
+     "response": {
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910",
+        "rel": "detail",
+        "method": "GET",
+        "encType": "application/json"
+       }
+      ]
+     },
+     "note": "Requesting PROOF_OF_FULFILLMENT here returned 400 EVIDENCE_TYPE_IS_NOT_ALLOWED."
+    },
+    {
+     "title": "About 12 minutes later the adjudicate link appears",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-EKV-10198910",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-EKV-10198910",
+      "create_time": "2026-11-11T14:04:20.668Z",
+      "update_time": "2026-11-11T14:30:24.023Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+      "status": "UNDER_REVIEW",
+      "dispute_state": "UNDER_PAYPAL_REVIEW",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "55.00"
+      },
+      "dispute_life_cycle_stage": "CHARGEBACK",
+      "dispute_channel": "INTERNAL",
+      "allowed_response_options": {
+       "accept_claim": {
+        "accept_claim_types": [
+         "REFUND"
+        ]
+       }
+      },
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/accept-claim",
+        "rel": "accept_claim",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/require-evidence",
+        "rel": "require_evidence",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/adjudicate",
+        "rel": "adjudicate",
+        "method": "POST",
+        "encType": "application/json"
+       },
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910/provide-supporting-info",
+        "rel": "provide_supporting_info",
+        "method": "POST",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:04:20.668Z",
+        "notes": "Please help, wrong material."
+       },
+       {
+        "evidence_type": "OTHER",
+        "source": "SUBMITTED_BY_SELLER",
+        "date": "2026-11-11T14:17:42.237Z",
+        "notes": "Item description and photos attached."
+       }
+      ]
+     },
+     "note": "Sandbox only."
+    },
+    {
+     "title": "Sandbox: simulate PayPal decision (SELLER_FAVOR)",
+     "request": {
+      "method": "POST",
+      "path": "/v1/customer/disputes/PP-R-EKV-10198910/adjudicate",
+      "body": {
+       "adjudication_outcome": "SELLER_FAVOR"
+      }
+     },
+     "status": 200,
+     "response": {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+     },
+     "note": "This call exists only in the sandbox. The decision is simulated, not made by PayPal."
+    },
+    {
+     "title": "Resolved: RESOLVED_SELLER_FAVOUR",
+     "request": {
+      "method": "GET",
+      "path": "/v1/customer/disputes/PP-R-EKV-10198910",
+      "body": null
+     },
+     "status": 200,
+     "response": {
+      "dispute_id": "PP-R-EKV-10198910",
+      "create_time": "2026-11-11T14:04:20.668Z",
+      "update_time": "2026-11-11T14:34:33.557Z",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+      "status": "RESOLVED",
+      "dispute_state": "RESOLVED",
+      "dispute_amount": {
+       "currency_code": "USD",
+       "value": "55.00"
+      },
+      "dispute_life_cycle_stage": "CHARGEBACK",
+      "dispute_channel": "INTERNAL",
+      "dispute_outcome": {
+       "outcome_code": "RESOLVED_SELLER_FAVOUR",
+       "outcome_reason": "INELIGIBLE_BUYER_PROTECTION_POLICY"
+      },
+      "links": [
+       {
+        "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-EKV-10198910",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+       }
+      ],
+      "evidences": [
+       {
+        "evidence_type": "CREATE",
+        "source": "SUBMITTED_BY_BUYER",
+        "date": "2026-11-11T14:04:20.668Z",
+        "notes": "Please help, wrong material."
+       },
+       {
+        "evidence_type": "OTHER",
+        "source": "SUBMITTED_BY_SELLER",
+        "date": "2026-11-11T14:17:42.237Z",
+        "notes": "Item description and photos attached."
+       }
+      ]
+     },
+     "note": "Badge: sandbox simulation."
+    }
+   ]
+  }
+ ]
+}

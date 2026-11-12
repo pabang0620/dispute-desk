@@ -1,0 +1,106 @@
+{
+  "key": "drafter-0a1b8d6c52",
+  "agent": "drafter",
+  "model": "claude-sonnet-5-5",
+  "backend": "account (Claude Agent SDK, local Claude Code login)",
+  "recordedOn": "2026-11-12",
+  "userText": "Draft a send_message for dispute PP-R-CLK-10200002. First read the dispute with get_dispute_detail and the demo store order with get_store_order. Use the store order id from the checklist item \"order\" (its source id looks like order:JH-1042, so the order id is JH-1042, not the dispute id). Then call draft_response with action \"send_message\", the checklist items exactly as get_dispute_detail returned them (id, present, source_id) and your text. Write the text only from facts in those records. The only dollar amounts you may use are the disputed amount and the offer amount the tools returned; the server rejects any other amount. If draft_response returns an error, fix the text and call it again. Nothing is sent: the seller reviews and approves the card.",
+  "tools": [
+    "get_dispute_detail",
+    "get_store_order",
+    "draft_response"
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "seen": [],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01FMJ4nusDAtwHJfAUN4NRHi",
+          "name": "get_dispute_detail",
+          "input": {
+            "dispute_id": "PP-R-CLK-10200002"
+          }
+        }
+      ],
+      "ms": 2987
+    },
+    {
+      "step": 1,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-CLK-10200002\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED\",\"amount\":\"18.40\",\"due\":\"2026-11-30T05:33:29.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"The shade is smaller than the listing photo suggests and has a visible chip on the rim.\"}],\"requested_evidence\":[],\"allowed_actions\":[\"accept_claim\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-CLK-10200002:messages[0]\",\"value\":\"The shade is smaller than the listing photo suggests and has a visible chip on the rim.\"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1049\",\"value\":\"Ceramic Lamp Shade, order JH-1049\"},{\"id\":\"listing_text\",\"label\":\"Listing text\",\"present\":true,\"sourceId\":\"order:JH-1049:listingText\",\"value\":\"Hand glazed stoneware shade, 7 in diameter. Small imperfections are part of the glaze.\"},{\"id\":\"listing_photo\",\"label\":\"Listing photos\",\"present\":true,\"sourceId\":\"order:JH-1049:listingPhotos\",\"value\":\"2 photos\"},{\"id\":\"tracking\",\"label\":\"Delivery confirmed\",\"present\":true,\"sourceId\":\"tracking:UPS:1Z999AA10123456784\",\"value\":\"UPS 1Z999AA10123456784, DELIVERED\"}]}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_0158W1ncAnBg1JPUTHiteaZf",
+          "name": "get_store_order",
+          "input": {
+            "order_id": "JH-1049"
+          }
+        }
+      ],
+      "ms": 2745
+    },
+    {
+      "step": 2,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-CLK-10200002\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED\",\"amount\":\"18.40\",\"due\":\"2026-11-30T05:33:29.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"The shade is smaller than the listing photo suggests and has a visible chip on the rim.\"}],\"requested_evidence\":[],\"allowed_actions\":[\"accept_claim\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-CLK-10200002:messages[0]\",\"value\":\"The shade is smaller than the listing photo suggests and has a visible chip on the rim.\"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1049\",\"value\":\"Ceramic Lamp Shade, order JH-1049\"},{\"id\":\"listing_text\",\"label\":\"Listing text\",\"present\":true,\"sourceId\":\"order:JH-1049:listingText\",\"value\":\"Hand glazed stoneware shade, 7 in diameter. Small imperfections are part of the glaze.\"},{\"id\":\"listing_photo\",\"label\":\"Listing photos\",\"present\":true,\"sourceId\":\"order:JH-1049:listingPhotos\",\"value\":\"2 photos\"},{\"id\":\"tracking\",\"label\":\"Delivery confirmed\",\"present\":true,\"sourceId\":\"tracking:UPS:1Z999AA10123456784\",\"value\":\"UPS 1Z999AA10123456784, DELIVERED\"}]}",
+          "isError": false
+        },
+        {
+          "name": "get_store_order",
+          "content": "{\"orderId\":\"JH-1049\",\"item\":\"Ceramic Lamp Shade\",\"listingTitle\":\"Stoneware lamp shade, small\",\"listingText\":\"Hand glazed stoneware shade, 7 in diameter. Small imperfections are part of the glaze.\",\"listingPhotos\":2,\"transactionAddress\":\"402 Birch Court, Austin, TX 78704\",\"shipToAddress\":\"402 Birch Court, Austin, TX 78704\",\"tracking\":{\"carrier\":\"UPS\",\"number\":\"1Z999AA10123456784\",\"status\":\"DELIVERED\",\"deliveredOn\":\"2026-11-02\"},\"inquiries\":[],\"physical\":true,\"source\":\"demo store data\"}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01CPq7Vg3XUtFBU5VXkQRVAF",
+          "name": "draft_response",
+          "input": {
+            "dispute_id": "PP-R-CLK-10200002",
+            "action": "send_message",
+            "text": "Hello, thank you for contacting us about order JH-1049, the Ceramic Lamp Shade. We are sorry the shade did not meet your expectations. For reference, the listing describes it as a hand glazed stoneware shade, 7 in diameter, and notes that small imperfections are part of the glaze. The listing included 2 photos. UPS tracking 1Z999AA10123456784 shows the package was delivered on 2026-11-02. To help us look into the chip on the rim and the size, could you please send clear photos of the shade, including the rim, with something next to it for scale? Once we have them, we will review and work with you on a resolution.",
+            "checklist": [
+              {
+                "id": "buyer_message",
+                "present": true,
+                "source_id": "dispute:PP-R-CLK-10200002:messages[0]"
+              },
+              {
+                "id": "order",
+                "present": true,
+                "source_id": "order:JH-1049"
+              },
+              {
+                "id": "listing_text",
+                "present": true,
+                "source_id": "order:JH-1049:listingText"
+              },
+              {
+                "id": "listing_photo",
+                "present": true,
+                "source_id": "order:JH-1049:listingPhotos"
+              },
+              {
+                "id": "tracking",
+                "present": true,
+                "source_id": "tracking:UPS:1Z999AA10123456784"
+              }
+            ]
+          }
+        }
+      ],
+      "ms": 6222
+    }
+  ]
+}

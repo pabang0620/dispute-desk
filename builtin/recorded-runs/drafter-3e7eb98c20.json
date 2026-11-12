@@ -1,0 +1,106 @@
+{
+  "key": "drafter-3e7eb98c20",
+  "agent": "drafter",
+  "model": "claude-sonnet-5-5",
+  "backend": "account (Claude Agent SDK, local Claude Code login)",
+  "recordedOn": "2026-11-12",
+  "userText": "Draft a send_message for dispute PP-R-BLK-10200001. First read the dispute with get_dispute_detail and the demo store order with get_store_order. Use the store order id from the checklist item \"order\" (its source id looks like order:JH-1042, so the order id is JH-1042, not the dispute id). Then call draft_response with action \"send_message\", the checklist items exactly as get_dispute_detail returned them (id, present, source_id) and your text. Write the text only from facts in those records. The only dollar amounts you may use are the disputed amount and the offer amount the tools returned; the server rejects any other amount. If draft_response returns an error, fix the text and call it again. Nothing is sent: the seller reviews and approves the card.",
+  "tools": [
+    "get_dispute_detail",
+    "get_store_order",
+    "draft_response"
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "seen": [],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01THk9MSpJyKQ9jCnRuosgZJ",
+          "name": "get_dispute_detail",
+          "input": {
+            "dispute_id": "PP-R-BLK-10200001"
+          }
+        }
+      ],
+      "ms": 2856
+    },
+    {
+      "step": 1,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-BLK-10200001\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED\",\"amount\":\"66.12\",\"due\":\"2026-11-30T05:33:28.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"Listing said 100 percent merino wool in charcoal grey. The throw I got is a thin polyester blend and the color is closer to dark green. Photos of the label are available on request.\"}],\"requested_evidence\":[],\"allowed_actions\":[\"accept_claim\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-BLK-10200001:messages[0]\",\"value\":\"Listing said 100 percent merino wool in charcoal grey. The throw I got is a thin polyester blend and the color is closer to dark green. Photos of the label are \"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1042\",\"value\":\"Wool Blanket, order JH-1042\"},{\"id\":\"listing_text\",\"label\":\"Listing text\",\"present\":true,\"sourceId\":\"order:JH-1042:listingText\",\"value\":\"Brushed wool-blend throw, 50 x 60 in, charcoal grey. Wool blend, 80 percent wool.\"},{\"id\":\"listing_photo\",\"label\":\"Listing photos\",\"present\":true,\"sourceId\":\"order:JH-1042:listingPhotos\",\"value\":\"3 photos\"},{\"id\":\"tracking\",\"label\":\"Delivery confirmed\",\"present\":true,\"sourceId\":\"tracking:USPS:9400111899223100000118\",\"value\":\"USPS 9400111899223100000118, DELIVERED\"}]}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01JpvBN66rAZwuYTYmQhZFsv",
+          "name": "get_store_order",
+          "input": {
+            "order_id": "JH-1042"
+          }
+        }
+      ],
+      "ms": 2927
+    },
+    {
+      "step": 2,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-BLK-10200001\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED\",\"amount\":\"66.12\",\"due\":\"2026-11-30T05:33:28.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"Listing said 100 percent merino wool in charcoal grey. The throw I got is a thin polyester blend and the color is closer to dark green. Photos of the label are available on request.\"}],\"requested_evidence\":[],\"allowed_actions\":[\"accept_claim\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-BLK-10200001:messages[0]\",\"value\":\"Listing said 100 percent merino wool in charcoal grey. The throw I got is a thin polyester blend and the color is closer to dark green. Photos of the label are \"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1042\",\"value\":\"Wool Blanket, order JH-1042\"},{\"id\":\"listing_text\",\"label\":\"Listing text\",\"present\":true,\"sourceId\":\"order:JH-1042:listingText\",\"value\":\"Brushed wool-blend throw, 50 x 60 in, charcoal grey. Wool blend, 80 percent wool.\"},{\"id\":\"listing_photo\",\"label\":\"Listing photos\",\"present\":true,\"sourceId\":\"order:JH-1042:listingPhotos\",\"value\":\"3 photos\"},{\"id\":\"tracking\",\"label\":\"Delivery confirmed\",\"present\":true,\"sourceId\":\"tracking:USPS:9400111899223100000118\",\"value\":\"USPS 9400111899223100000118, DELIVERED\"}]}",
+          "isError": false
+        },
+        {
+          "name": "get_store_order",
+          "content": "{\"orderId\":\"JH-1042\",\"item\":\"Wool Blanket\",\"listingTitle\":\"Highland Wool Throw, charcoal grey\",\"listingText\":\"Brushed wool-blend throw, 50 x 60 in, charcoal grey. Wool blend, 80 percent wool.\",\"listingPhotos\":3,\"transactionAddress\":\"18 Alder Row, Portland, OR 97205\",\"shipToAddress\":\"18 Alder Row, Portland, OR 97205\",\"tracking\":{\"carrier\":\"USPS\",\"number\":\"9400111899223100000118\",\"status\":\"DELIVERED\",\"deliveredOn\":\"2026-10-29\"},\"inquiries\":[],\"physical\":true,\"source\":\"demo store data\"}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01L8NvgzqdpL7u8y5dQfoHWT",
+          "name": "draft_response",
+          "input": {
+            "dispute_id": "PP-R-BLK-10200001",
+            "action": "send_message",
+            "text": "Hello, thank you for contacting us about order JH-1042, the Highland Wool Throw in charcoal grey. We are sorry the throw did not meet your expectations. Our listing described it as a brushed wool-blend throw, 50 x 60 in, charcoal grey, with 80 percent wool, and it included 3 photos. The order was delivered by USPS (tracking 9400111899223100000118) on 2026-10-29. You mentioned you have photos of the label. Could you please send them, along with a photo showing the color you received? Once we have those, we can review them and work out a fair solution with you.",
+            "checklist": [
+              {
+                "id": "buyer_message",
+                "present": true,
+                "source_id": "dispute:PP-R-BLK-10200001:messages[0]"
+              },
+              {
+                "id": "order",
+                "present": true,
+                "source_id": "order:JH-1042"
+              },
+              {
+                "id": "listing_text",
+                "present": true,
+                "source_id": "order:JH-1042:listingText"
+              },
+              {
+                "id": "listing_photo",
+                "present": true,
+                "source_id": "order:JH-1042:listingPhotos"
+              },
+              {
+                "id": "tracking",
+                "present": true,
+                "source_id": "tracking:USPS:9400111899223100000118"
+              }
+            ]
+          }
+        }
+      ],
+      "ms": 6189
+    }
+  ]
+}

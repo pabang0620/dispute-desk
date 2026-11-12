@@ -1,0 +1,40 @@
+{
+  "name": "dispute-desk",
+  "version": "1.0.0",
+  "description": "Plans a PayPal seller's whole dispute queue so the account stays under the 1.5% High Volume line. AG Studio dashboard with a Claude agent.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "vite build",
+    "start": "node server/index.js",
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "vite",
+    "test": "node --import ./test/setup.js --test test/*.test.js",
+    "dispute:new": "bash scripts/sandbox-filing/new_dispute.sh",
+    "reserve": "node scripts/reserve.mjs",
+    "eval": "node scripts/run-evals.mjs",
+    "demo:video": "vite build && FORCE_MOCK=1 POOL_ENABLED=0 PORT=3002 node server/index.js",
+    "demo:sandbox": "test -n \"$SANDBOX_CASE_A\" || { echo \"Set SANDBOX_CASE_A to one or more sandbox dispute ids (npm run case-a:new)\"; exit 1; }; vite build && POOL_ENABLED=0 node server/index.js",
+    "case-a:new": "bash scripts/sandbox-filing/new_dispute.sh SNAD 66.12 Wool_Blanket",
+    "register-webhook": "node scripts/register-webhook.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.322",
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@paypal/agent-toolkit": "^1.11.0",
+    "ag-studio": "^3.1.0",
+    "ag-studio-react": "^3.1.0",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8"
+  }
+}

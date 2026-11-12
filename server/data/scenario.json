@@ -1,0 +1,71 @@
+{
+  "asOf": "2026-11-12",
+  "ledgerSource": "demo store ledger",
+  "store": {
+    "name": "Juniper Home",
+    "netSales3mo": 24000.0,
+    "salesCount": 412,
+    "countedClaims": [
+      { "id": "L-1", "label": "Claim, blanket", "amount": 98.0, "escalatedOn": "2026-09-08" },
+      { "id": "L-2", "label": "Claim, lamp", "amount": 88.5, "escalatedOn": "2026-09-21" },
+      { "id": "L-3", "label": "Claim, runner", "amount": 71.5, "escalatedOn": "2026-10-14" },
+      { "id": "L-4", "label": "Claim, clock", "amount": 54.0, "escalatedOn": "2026-11-03" }
+    ],
+    "pastDisputes": { "settledAtInquiry": 5, "exemptClaims": 3, "otherClaims": 4 }
+  },
+  "rules": {
+    "highVolumeRate": 0.015,
+    "highVolumeMinSales": 100,
+    "standardFee": 15,
+    "highVolumeFee": 30,
+    "chargebackFee": 20,
+    "standardFeeExemptBelow": 30
+  },
+  "assumptions": { "q": 0.5, "p": 0.4, "returnRecoveryRatio": 0, "period": "window", "windowAssumption": "a" },
+  "offerAmount": 20.0,
+  "openInquiries": [
+    {
+      "label": "A",
+      "disputeId": "PP-R-BLK-10200001",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+      "kind": "SNAD",
+      "amount": 66.12,
+      "item": "Wool Blanket",
+      "orderId": "JH-1042",
+      "buyerMessage": "Listing said 100 percent merino wool in charcoal grey. The throw I got is a thin polyester blend and the color is closer to dark green. Photos of the label are available on request.",
+      "tierAtCreation": "STANDARD",
+      "paymentMethod": "PAYPAL"
+    },
+    {
+      "label": "B",
+      "disputeId": "PP-R-CLK-10200002",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+      "kind": "SNAD",
+      "amount": 18.4,
+      "item": "Ceramic Lamp Shade",
+      "orderId": "JH-1049",
+      "buyerMessage": "The shade is smaller than the listing photo suggests and has a visible chip on the rim.",
+      "tierAtCreation": "STANDARD",
+      "paymentMethod": "PAYPAL"
+    },
+    {
+      "label": "C",
+      "disputeId": "PP-R-LMP-10200003",
+      "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+      "kind": "INR",
+      "amount": 41.37,
+      "item": "Desk Lamp",
+      "orderId": "JH-1051",
+      "buyerMessage": "Ordered two weeks ago, nothing arrived and the seller never sent tracking.",
+      "tierAtCreation": "STANDARD",
+      "paymentMethod": "PAYPAL",
+      "sellerProtectionEligible": true
+    }
+  ],
+  "expected": {
+    "ratesPct": { "counted": "1.30", "worst": "1.82", "planY": "1.47", "aDeclined": "1.75", "cAndB": "1.55" },
+    "tierCost": { "window": 150, "decOnly": 50 },
+    "planTotals": { "X": 127.74, "Y": 84.52, "Z": 209.71, "AfightBrefund": 217.07, "ArefundBfight": 227.16, "AofferBfight": 195.38 },
+    "breakEvenQ": { "window": 0.742, "decOnly": 0.414 }
+  }
+}

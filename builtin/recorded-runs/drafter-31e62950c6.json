@@ -1,0 +1,101 @@
+{
+  "key": "drafter-31e62950c6",
+  "agent": "drafter",
+  "model": "claude-sonnet-5-5",
+  "backend": "account (Claude Agent SDK, local Claude Code login)",
+  "recordedOn": "2026-11-12",
+  "userText": "Draft a send_message for dispute PP-R-LMP-10200003. First read the dispute with get_dispute_detail and the demo store order with get_store_order. Use the store order id from the checklist item \"order\" (its source id looks like order:JH-1042, so the order id is JH-1042, not the dispute id). Then call draft_response with action \"send_message\", the checklist items exactly as get_dispute_detail returned them (id, present, source_id) and your text. Write the text only from facts in those records. The only dollar amounts you may use are the disputed amount and the offer amount the tools returned; the server rejects any other amount. If draft_response returns an error, fix the text and call it again. Nothing is sent: the seller reviews and approves the card.",
+  "tools": [
+    "get_dispute_detail",
+    "get_store_order",
+    "draft_response"
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "seen": [],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01VV39o814YSvEUz7yY61QpR",
+          "name": "get_dispute_detail",
+          "input": {
+            "dispute_id": "PP-R-LMP-10200003"
+          }
+        }
+      ],
+      "ms": 2739
+    },
+    {
+      "step": 1,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-LMP-10200003\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_RECEIVED\",\"amount\":\"41.37\",\"due\":\"2026-11-30T05:33:30.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"Ordered two weeks ago, nothing arrived and the seller never sent tracking.\"}],\"requested_evidence\":[\"PROOF_OF_FULFILLMENT\"],\"allowed_actions\":[\"accept_claim\",\"provide_evidence\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-LMP-10200003:messages[0]\",\"value\":\"Ordered two weeks ago, nothing arrived and the seller never sent tracking.\"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1051\",\"value\":\"Desk Lamp, order JH-1051\"},{\"id\":\"tracking\",\"label\":\"Tracking shows delivered\",\"present\":true,\"sourceId\":\"tracking:USPS:9400111899223100000204\",\"value\":\"USPS 9400111899223100000204, DELIVERED 2026-10-30\"},{\"id\":\"address\",\"label\":\"Shipped to the transaction address\",\"present\":true,\"sourceId\":\"order:JH-1051:shipToAddress\",\"value\":\"77 Harbor Street, Boston, MA 02110\"}]}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_016gykEaJ2Vr2Be7GC4FkF9b",
+          "name": "get_store_order",
+          "input": {
+            "order_id": "JH-1051"
+          }
+        }
+      ],
+      "ms": 2723
+    },
+    {
+      "step": 2,
+      "seen": [
+        {
+          "name": "get_dispute_detail",
+          "content": "{\"dispute_id\":\"PP-R-LMP-10200003\",\"stage\":\"INQUIRY\",\"state\":\"REQUIRED_ACTION\",\"reason\":\"MERCHANDISE_OR_SERVICE_NOT_RECEIVED\",\"amount\":\"41.37\",\"due\":\"2026-11-30T05:33:30.092Z\",\"messages\":[{\"by\":\"BUYER\",\"text\":\"Ordered two weeks ago, nothing arrived and the seller never sent tracking.\"}],\"requested_evidence\":[\"PROOF_OF_FULFILLMENT\"],\"allowed_actions\":[\"accept_claim\",\"provide_evidence\",\"send_message\",\"escalate\",\"make_offer\"],\"checklist\":[{\"id\":\"buyer_message\",\"label\":\"Buyer message read\",\"present\":true,\"sourceId\":\"dispute:PP-R-LMP-10200003:messages[0]\",\"value\":\"Ordered two weeks ago, nothing arrived and the seller never sent tracking.\"},{\"id\":\"order\",\"label\":\"Order found in store records\",\"present\":true,\"sourceId\":\"order:JH-1051\",\"value\":\"Desk Lamp, order JH-1051\"},{\"id\":\"tracking\",\"label\":\"Tracking shows delivered\",\"present\":true,\"sourceId\":\"tracking:USPS:9400111899223100000204\",\"value\":\"USPS 9400111899223100000204, DELIVERED 2026-10-30\"},{\"id\":\"address\",\"label\":\"Shipped to the transaction address\",\"present\":true,\"sourceId\":\"order:JH-1051:shipToAddress\",\"value\":\"77 Harbor Street, Boston, MA 02110\"}]}",
+          "isError": false
+        },
+        {
+          "name": "get_store_order",
+          "content": "{\"orderId\":\"JH-1051\",\"item\":\"Desk Lamp\",\"listingTitle\":\"Brass desk lamp\",\"listingText\":\"Brass desk lamp with linen shade. Ships in 2 business days.\",\"listingPhotos\":4,\"transactionAddress\":\"77 Harbor Street, Boston, MA 02110\",\"shipToAddress\":\"77 Harbor Street, Boston, MA 02110\",\"tracking\":{\"carrier\":\"USPS\",\"number\":\"9400111899223100000204\",\"status\":\"DELIVERED\",\"deliveredOn\":\"2026-10-30\"},\"inquiries\":[{\"date\":\"2026-11-04\",\"from\":\"BUYER\",\"text\":\"Has my lamp shipped?\"}],\"physical\":true,\"source\":\"demo store data\"}",
+          "isError": false
+        }
+      ],
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_017gv368bEPxiCSaGqL3EhwB",
+          "name": "draft_response",
+          "input": {
+            "dispute_id": "PP-R-LMP-10200003",
+            "action": "send_message",
+            "text": "Hello, thank you for contacting us about your Desk Lamp order (JH-1051). Our records show the order shipped with USPS, tracking number 9400111899223100000204, and the carrier status is DELIVERED on 2026-10-30. It was sent to 77 Harbor Street, Boston, MA 02110, which is the same address as the transaction address on your order. Please check around your delivery address, such as a porch, mailroom, neighbors or household members, and let us know if you still can't find it. If you can't, reply with any details and we will look into it with the carrier. We're sorry for the confusion about tracking, and we'd like to get this resolved for you.",
+            "checklist": [
+              {
+                "id": "buyer_message",
+                "present": true,
+                "source_id": "dispute:PP-R-LMP-10200003:messages[0]"
+              },
+              {
+                "id": "order",
+                "present": true,
+                "source_id": "order:JH-1051"
+              },
+              {
+                "id": "tracking",
+                "present": true,
+                "source_id": "tracking:USPS:9400111899223100000204"
+              },
+              {
+                "id": "address",
+                "present": true,
+                "source_id": "order:JH-1051:shipToAddress"
+              }
+            ]
+          }
+        }
+      ],
+      "ms": 6225
+    }
+  ]
+}

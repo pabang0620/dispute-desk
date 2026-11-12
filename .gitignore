@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+.scratch
+pool-state.json
+scripts/sandbox-filing/out
+__pycache__
