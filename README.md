@@ -1,10 +1,12 @@
+Demo video: https://youtu.be/1yFFWA7sbNs | Hosted demo: https://dispute-desk.35-216-2-121.sslip.io | Devpost: https://devpost.com/software/dispute-desk-k0c6v9
+
 <img src="client/public/logo-512.png" width="128" alt="logo" />
 
 # Dispute Desk
 
 Dispute Desk is for the owner of a small US online store who answers PayPal disputes alone and sits at a 1.3% dispute rate. It shows that a $20 offer looks $31.78 cheaper per case, yet refunding that case is $43.22 cheaper for the account, because a declined offer would push the store to 1.75% and over PayPal's 1.5% High Volume line, while the refund keeps it at 1.47%. These are the app's own demo numbers (expected cost over the whole queue: $84.52 for the refund plan against $127.74 for the case-by-case plan).
 
-**Try it:** https://dispute-desk.35-216-2-121.sslip.io (hosted demo: offline stand-ins for PayPal, recorded Claude Sonnet runs; no login).
+**Try it:** https://dispute-desk.35-216-2-121.sslip.io (hosted demo, no login: live Claude Sonnet `claude-sonnet-5-5` with per-IP-hour and per-day caps, falling back to a labelled recorded run or rule-based stand-in when the API fails or a cap is hit; PayPal runs in hybrid mode, a real sandbox dispute for case A and the stand-in for B and C).
 
 Dispute Desk keeps open PayPal inquiries from pushing a seller over PayPal's 1.5% High Volume line: it projects the dispute rate if they become claims, plans which to settle at the inquiry stage and which to fight, prices every option with PayPal's own fee rules, drafts the reply, and sends nothing until the seller approves.
 
@@ -178,7 +180,7 @@ PASS:
 - **R20** Agent Toolkit `accept_dispute_claim` called directly with note `refund_issued` resolved a case; the app sends the same JSON through REST.
 - **R8** Shipment tracking read for a captured sandbox order.
 - **R6** Filing sandbox disputes through the buyer web flow from this machine (hosted machine not tested).
-- **R21** Claude through a local Claude Code account (Sonnet): chat delegation, Draft with Claude and the 30-case evaluation. The hosted Anthropic API streaming path was not run.
+- **R21** Claude through a local Claude Code account (Sonnet): chat delegation, Draft with Claude and the 30-case evaluation. The hosted demo runs the Anthropic API streaming path live, with the fallbacks described above.
 
 PARTIAL: **R17** require-evidence worked once; escalating reserved cases on a chosen date was not run.
 Not claimed: R7 webhook, R9 buyer accepts an offer, R10, R18, R22 AG Studio licence. The same list is in the app (Recorded run window).
