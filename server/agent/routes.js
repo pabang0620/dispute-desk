@@ -5,7 +5,7 @@ import { anthropicToAgUi, itemsToMessages, agUiToMessages, toAnthropicTools, toA
 import { SERVER_TOOL_NAMES, serverToolSchemas, runServerTool } from './tools.js'
 import { ANALYST_PROMPT } from './prompts.js'
 import { HttpError, parse } from '../http.js'
-import { agentLimiter } from '../demoLimits.js'
+import { planModelUse } from '../demoLimits.js'
 import { modes } from '../config.js'
 import { sourceOf } from './replay.js'
 
@@ -47,15 +47,17 @@ export async function studioLlm(req, res) {
     system: [body.instructions, system].filter(Boolean).join('\n\n') || undefined,
     messages,
     tools: tools.length ? tools : undefined,
+    // Required choices are turned into an instruction plus a check by modelEvents; the API never sees them.
     tool_choice: jsonMode ? { type: 'tool', name: 'respond' } : toAnthropicToolChoice(body.toolChoice, tools),
   }
   const send = openSse(res)
   const ctl = abortOnClose(req, res)
   const sink = {}
   try {
-    const forceMock = agentLimiter(req)
+    const { forceMock, reason: limitReason } = planModelUse(req)
+    const meta = {}
     let started = false
-    for await (const ev of anthropicToAgUi(modelEvents(params, { signal: ctl.signal, forceMock }), sink)) {
+    for await (const ev of anthropicToAgUi(modelEvents(params, { signal: ctl.signal, forceMock, meta }), sink)) {
       if (jsonMode) continue
       started = true
       send({ kind: 'event', event: ev })
@@ -71,7 +73,8 @@ export async function studioLlm(req, res) {
     }
     void started
     // Which answered this turn: the model, a recorded real run, or the scripted stand-in. The screen shows it.
-    send({ kind: 'source', ...sourceOf(sink.model, forceMock ? 'mock' : modes.llm) })
+    const why = limitReason || meta.fallbackReason || ''
+    send({ kind: 'source', ...sourceOf(sink.model, forceMock || meta.fallbackReason ? 'mock' : modes.llm, why) })
     send({
       kind: 'complete',
       response: {
@@ -85,7 +88,7 @@ export async function studioLlm(req, res) {
       },
     })
   } catch (err) {
-    send({ kind: 'error', message: err.name === 'AbortError' ? 'cancelled' : `Model call failed: ${err.message}` })
+    send({ kind: 'error', message: err.name === 'AbortError' ? 'cancelled' : 'The answer was interrupted. Ask again to use the recorded run.' })
   }
   res.end()
 }
@@ -139,7 +142,10 @@ export async function agentRun(req, res) {
   const ctl = abortOnClose(req, res)
   const emit = (event) => send({ kind: 'event', event })
   try {
-    const forceMock = agentLimiter(req)
+    // A request that only returns Studio's tool results continues an action that was already counted.
+    const resuming = Boolean(body.input.threadId && session.agentThreads?.has(body.input.threadId))
+    const plan = planModelUse(req, { count: !resuming })
+    const meta = {}
     const clientSchemas = (body.input.tools || []).filter((t) => !SERVER_TOOL_NAMES.has(t.name))
     const tools = [...serverToolSchemas(), ...toAnthropicTools(clientSchemas)]
     const clientNames = new Set(clientSchemas.map((t) => t.name))
@@ -147,9 +153,10 @@ export async function agentRun(req, res) {
     const systemText = [ANALYST_PROMPT, body.instructions, system].filter(Boolean).join('\n\n')
     for (let round = 0; round < MAX_ROUNDS; round += 1) {
       const sink = {}
-      for await (const ev of anthropicToAgUi(modelEvents({ system: systemText, messages, tools, tool_choice: { type: 'auto' } }, { signal: ctl.signal, forceMock }), sink)) emit(ev)
+      for await (const ev of anthropicToAgUi(modelEvents({ system: systemText, messages, tools, tool_choice: { type: 'auto' } }, { signal: ctl.signal, forceMock: plan.forceMock || Boolean(meta.fallbackReason), meta }), sink)) emit(ev)
       messages.push({ role: 'assistant', content: sink.content })
-      send({ kind: 'source', ...sourceOf(sink.model, forceMock ? 'mock' : modes.llm) })
+      const why = plan.reason || meta.fallbackReason || ''
+      send({ kind: 'source', ...sourceOf(sink.model, plan.forceMock || meta.fallbackReason ? 'mock' : modes.llm, why) })
       const calls = sink.toolUses
       if (!calls.length) break
       const results = []
@@ -173,7 +180,7 @@ export async function agentRun(req, res) {
       messages.push({ role: 'user', content: results })
     }
   } catch (err) {
-    send({ kind: 'event', event: { type: 'RUN_ERROR', message: err.name === 'AbortError' ? 'cancelled' : `Agent run failed: ${err.message}` } })
+    send({ kind: 'event', event: { type: 'RUN_ERROR', message: err.name === 'AbortError' ? 'cancelled' : 'The agent run was interrupted. Run it again to use the recorded run.' } })
   }
   res.end()
 }

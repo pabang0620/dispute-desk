@@ -33,7 +33,7 @@ npm start            # http://localhost:3002
 No keys needed. Without keys the app runs on **offline stand-ins**:
 
 - PayPal: a stateful stand-in for the Disputes v1 API. Its response bodies, states, link relations, 422 and 400 behaviour and stage changes follow the real sandbox responses recorded on 2026-11-11 (see `server/data/recordedRun.json` and `server/paypal/mockDisputes.js`). Durations are the observed sandbox durations divided by `MOCK_TIME_SCALE` (default 40, so the 2-minute refund takes 3 seconds).
-- Claude: **recorded real runs first, then a scripted stand-in.** The two AI scenes of the walkthrough (step 3 chat, step 5 Draft with Claude on cases A, B and C) were run once with Claude Sonnet through a local Claude Code account on 2026-11-12 and saved in `builtin/recorded-runs/` (tool calls in order, model text, timings). Without a model, a turn that asks the same question and sees the same tool results replays the recorded model output, while every tool still runs live on the server. The screen says "Last AI answer: Recorded run: Claude Sonnet, 2026-11-12". Anything else (another question, a changed planner) gets the scripted stand-in, labelled "offline stand-in (scripted, not a model)". The adapter, the AG-UI conversion, the server tool loop and the Studio delegation run the same code as with the real API.
+- Claude: **recorded real runs first, then a scripted stand-in.** The two AI scenes of the walkthrough (step 3 chat, step 5 Draft with Claude on cases A, B and C) were run once with Claude Sonnet through a local Claude Code account on 2026-11-12 and saved in `builtin/recorded-runs/` (tool calls in order, model text, timings). Without a model, a turn that asks the same question and sees the same tool results replays the recorded model output, while every tool still runs live on the server. The screen says "Last AI answer: Recorded run: Claude Sonnet, 2026-11-12". Anything else (another question, a changed planner) gets the scripted stand-in, labelled "Rule-based stand-in (scripted, not a model)". The adapter, the AG-UI conversion, the server tool loop and the Studio delegation run the same code as with the real API.
 
 Every visitor session gets a private copy of the stand-in, so one person's refund never changes another person's demo.
 
@@ -75,6 +75,8 @@ On a deployment connected to the PayPal sandbox, "Claim my cases" reserves real 
 | `MOCK_TIME_SCALE` | Stand-in speed-up of the observed sandbox durations | 40 |
 | `POOL_ENABLED`, `POOL_TARGET`, `STATE_FILE` | Judge-path refill worker, target size, state file | off, 6, none |
 | `CHAT_PER_IP_HOUR`, `CHAT_PER_DAY`, `WRITES_PER_HOUR` | Demo limits. Over the model limit the offline stand-in answers | 40, 300, 30 |
+| `LLM_LIVE_PER_IP_HOUR`, `LLM_LIVE_PER_DAY` | Live Claude caps: model runs per client IP per hour, and per host per day (one run = one user action). Over a cap, or when the API errors or times out, the action completes from the recorded run if one exists, else the rule-based stand-in, and the screen says why (for example "live limit reached") | 10, 150 |
+| `LLM_TIMEOUT_MS` | Live API request timeout before the fallback | 60000 |
 | `FORCE_MOCK` | `1` ignores every key (tests and `npm run demo:video` set it) | unset |
 | `LLM_REPLAY` | `0` turns off the recorded-run replay, so the offline demo uses only the scripted stand-in (tests set it) | on |
 | `RECORD_LLM_RUNS` | `1` with `LLM_BACKEND=account` saves every model turn to `builtin/recorded-runs/` | off |

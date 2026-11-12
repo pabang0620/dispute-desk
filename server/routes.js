@@ -14,7 +14,7 @@ import { createCard, editCard, rejectCard, approveCard, listCards, publicCard, A
 import { studioLlm, agentRun } from './agent/routes.js'
 import { draftWithClaude } from './agent/draft.js'
 import { sourceOf, listRecordedAiRuns } from './agent/replay.js'
-import { writeLimiter, agentLimiter } from './demoLimits.js'
+import { writeLimiter, planModelUse } from './demoLimits.js'
 import { bannerFor } from './judge/banner.js'
 import { DisputePool } from './judge/pool.js'
 import { fileSandboxDispute } from './judge/filing.js'
@@ -132,9 +132,11 @@ api.post('/approvals', writeLimiter, wrap(async (req, res) => {
 // "Draft with Claude": the dispute-analyst reads the records and creates a card through draft_response (amount check included).
 api.post('/approvals/draft', wrap(async (req, res) => {
   const body = parse(z.object({ disputeId: disputeIdSchema, action: z.enum(['send_message', 'provide_evidence', 'escalate']).default('send_message') }), req.body)
-  const forceMock = agentLimiter(req)
-  const out = await draftWithClaude(req.session, { ...body, forceMock })
-  const drafter = sourceOf(out.model, forceMock ? 'mock' : modes.llm)
+  const { forceMock, reason } = planModelUse(req)
+  const meta = {}
+  const out = await draftWithClaude(req.session, { ...body, forceMock, meta })
+  const why = reason || meta.fallbackReason || ''
+  const drafter = sourceOf(out.model, forceMock || meta.fallbackReason ? 'mock' : modes.llm, why)
   const card = { ...req.session.approvals.get(out.cardId), drafter }
   req.session.approvals.set(card.id, card)
   res.status(201).json({ success: true, data: { card: publicCard(card, (await detailsFor(req.session)).get(card.disputeId)), steps: out.steps, model: out.model, source: drafter.source, label: drafter.label, summary: out.summary } })

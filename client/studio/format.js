@@ -16,4 +16,4 @@ export function untilText(ms) {
   return h >= 48 ? `${Math.round(h / 24)}d` : h >= 1 ? `${Math.round(h)}h` : `${Math.max(1, Math.round(ms / 60000))}m`
 }
 
-export const LLM_LABEL = { live: 'Anthropic API', account: 'Claude Sonnet (local account)', mock: 'offline stand-in' }
+export const LLM_LABEL = { live: 'Anthropic API', account: 'Claude Sonnet (local account)', mock: 'Rule-based stand-in' }

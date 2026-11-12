@@ -19,7 +19,7 @@ const TASK = (disputeId, action) =>
  * its draft through draft_response. The same server tools and the same amount check as in the chat. Returns the card id
  * and the tool calls Claude made so the screen can show the work.
  */
-export async function draftWithClaude(session, { disputeId, action, signal, forceMock }) {
+export async function draftWithClaude(session, { disputeId, action, signal, forceMock, meta = {} }) {
   if (!DRAFT_ACTIONS.includes(action)) throw new HttpError(400, `Drafting supports ${DRAFT_ACTIONS.join(', ')}`)
   const tools = serverToolSchemas().filter((t) => DRAFT_TOOLS.has(t.name))
   const messages = [{ role: 'user', content: [{ type: 'text', text: TASK(disputeId, action) }] }]
@@ -28,7 +28,7 @@ export async function draftWithClaude(session, { disputeId, action, signal, forc
   let lastError = null
   for (let round = 0; round < MAX_ROUNDS; round += 1) {
     const sink = {}
-    const events = modelEvents({ system: ANALYST_PROMPT, messages, tools, tool_choice: { type: 'auto' } }, { signal, forceMock })
+    const events = modelEvents({ system: ANALYST_PROMPT, messages, tools, tool_choice: { type: 'auto' } }, { signal, forceMock: forceMock || Boolean(meta.fallbackReason), meta })
     for await (const ev of anthropicToAgUi(events, sink)) void ev
     model = sink.model
     messages.push({ role: 'assistant', content: sink.content })

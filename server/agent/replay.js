@@ -137,14 +137,15 @@ export function recordTurn(params, message, ms, { dir = RUNS_DIR, recordedOn = n
 }
 
 /** Label for a model id: the recorded-run label names the real model and the recording date. */
-export function sourceOf(model, backend) {
+export function sourceOf(model, backend, reason = '') {
+  const why = reason ? ` (${reason})` : ''
   if (typeof model === 'string' && model.startsWith(RECORDED_MODEL_PREFIX)) {
     const date = model.split('@')[1] || ''
-    return { source: 'recorded', label: `Recorded run: Claude Sonnet, ${date}` }
+    return { source: 'recorded', label: `Recorded run: Claude Sonnet, ${date}${why}` }
   }
   if (backend === 'account') return { source: 'account', label: 'Claude Sonnet (local account)' }
   if (backend === 'live') return { source: 'live', label: 'Anthropic API' }
-  return { source: 'mock', label: 'offline stand-in (scripted, not a model)' }
+  return { source: 'mock', label: `Rule-based stand-in (scripted, not a model)${why}` }
 }
 
 const AGENT_ORDER = { lead: 0, analyst: 1, drafter: 2 }

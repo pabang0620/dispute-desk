@@ -11,7 +11,7 @@ const NEAR_DEADLINE_BLOCKED = new Set(['send_message', 'make_offer', 'escalate']
 // The chip names who wrote the draft: a scripted stand-in is never called Claude.
 function draftedBy(drafter) {
   if (!drafter) return 'drafted by the agent'
-  if (drafter.source === 'mock') return 'drafted by offline stand-in'
+  if (drafter.source === 'mock') return 'drafted by rule-based stand-in'
   if (drafter.source === 'recorded') return drafter.label
   return `drafted by ${drafter.label}`
 }
@@ -80,7 +80,7 @@ export default function ApprovalCard({ card, busy, work, d, kind, label, order }
       </div>
       {work ? (
         <div className="dd-sub" title="The tool calls Claude made on the server. The checklist and every amount come from code.">
-          {work.source === 'mock' ? 'Offline stand-in (scripted, not a model)' : `Claude (${work.label || LLM_LABEL[work.source] || work.source})`} read: {work.steps.map((x) => x.tool + (x.ok ? '' : ' (rejected)')).join(' > ')}
+          {work.source === 'mock' ? (work.label || 'Rule-based stand-in (scripted, not a model)') : `Claude (${work.label || LLM_LABEL[work.source] || work.source})`} read: {work.steps.map((x) => x.tool + (x.ok ? '' : ' (rejected)')).join(' > ')}
         </div>
       ) : null}
       <dl className="dd-dl">

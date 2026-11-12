@@ -3,11 +3,17 @@ import { config } from '../config.js'
 import { mockMessage } from './mockClaude.js'
 import { accountMessage } from './accountModel.js'
 import { replayTurn, recordTurn } from './replay.js'
+import { requiredOf, safeParams, calledRequired, NO_TOOL_REASON } from './toolChoice.js'
 
 // One place that talks to a model. With ANTHROPIC_API_KEY it calls the Anthropic Messages API; with LLM_BACKEND=account
 // it runs one turn through the local Claude Code login (accountModel.js); without either it
 // uses mockClaude, which returns Anthropic-shaped messages. Everything above this file is identical in both modes.
 let client = null
+
+/** Tests swap in a fake model client. */
+export function setClientForTests(fake) {
+  client = fake
+}
 
 function getClient() {
   client ||= new Anthropic({ apiKey: config.anthropicKey })
@@ -26,15 +32,28 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
  * Yields Anthropic raw stream events (message_start, content_block_start, content_block_delta, content_block_stop,
  * message_delta, message_stop) for one model turn.
  */
-export async function* modelEvents(params, { signal, forceMock = false } = {}) {
-  if (forceMock || config.llmBackend === 'mock') {
-    const hit = REPLAY ? replayTurn(params) : null
-    if (hit) {
-      await sleep(Math.min(hit.ms || 0, REPLAY_PAUSE_MS))
-      yield* syntheticEvents(hit.message)
+export async function* modelEvents(params, { signal, forceMock = false, meta = {} } = {}) {
+  const required = params.tools?.length ? requiredOf(params.tool_choice) : null
+  if (!required || forceMock || config.llmBackend === 'mock') {
+    yield* rawEvents(safeParams(params, required), { signal, forceMock, meta })
+    return
+  }
+  // A required tool: buffer the turn, check the tool was called, retry once with the instruction repeated, then fall back.
+  for (const repeat of [false, true]) {
+    const events = []
+    for await (const ev of rawEvents(safeParams(params, required, repeat), { signal, forceMock, meta })) events.push(ev)
+    if (meta.fallbackReason || calledRequired(events, required)) {
+      yield* events
       return
     }
-    yield* syntheticEvents(await mockMessage(params))
+  }
+  meta.fallbackReason = NO_TOOL_REASON
+  yield* offlineTurn(params)
+}
+
+async function* rawEvents(params, { signal, forceMock = false, meta = {} } = {}) {
+  if (forceMock || config.llmBackend === 'mock') {
+    yield* offlineTurn(params)
     return
   }
   if (config.llmBackend === 'account') {
@@ -42,6 +61,10 @@ export async function* modelEvents(params, { signal, forceMock = false } = {}) {
     const message = await accountMessage(params, { signal })
     if (RECORD) recordTurn(params, message, Date.now() - started)
     yield* syntheticEvents(message)
+    return
+  }
+  if (config.llmBackend === 'api') {
+    yield* liveTurn(params, { signal, meta })
     return
   }
   const body = { model: config.anthropicModel, max_tokens: 4096, ...params }
@@ -52,6 +75,47 @@ export async function* modelEvents(params, { signal, forceMock = false } = {}) {
   }
   const message = await getClient().messages.create(body, { signal })
   yield* syntheticEvents(message)
+}
+
+async function* offlineTurn(params) {
+  const hit = REPLAY ? replayTurn(params) : null
+  if (hit) {
+    await sleep(Math.min(hit.ms || 0, REPLAY_PAUSE_MS))
+    yield* syntheticEvents(hit.message)
+    return
+  }
+  yield* syntheticEvents(await mockMessage(params))
+}
+
+export const LIVE_ERROR_REASON = 'live API unavailable'
+const LIVE_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS || 60_000)
+
+/**
+ * One turn on the Anthropic API. Any API failure (network, 4xx/5xx, timeout, credit) before the answer starts is
+ * replaced by the recorded run or the stand-in, and meta.fallbackReason tells the caller. The raw error is never passed on.
+ */
+async function* liveTurn(params, { signal, meta }) {
+  const body = { model: config.anthropicModel, max_tokens: 4096, ...params }
+  const options = { signal, timeout: LIVE_TIMEOUT_MS, maxRetries: 1 }
+  let started = false
+  try {
+    if (STREAM) {
+      const stream = await getClient().messages.create({ ...body, stream: true }, options)
+      for await (const ev of stream) {
+        started = true
+        yield ev
+      }
+    } else {
+      const message = await getClient().messages.create(body, options)
+      started = true
+      yield* syntheticEvents(message)
+    }
+  } catch (err) {
+    if (signal?.aborted || err?.name === 'AbortError') throw err
+    if (started) throw new Error('The live answer was cut off. Run the action again to use the recorded run.')
+    meta.fallbackReason = LIVE_ERROR_REASON
+    yield* offlineTurn(params)
+  }
 }
 
 const chunk = (text, size) => (text.length ? text.match(new RegExp(`[\\s\\S]{1,${size}}`, 'g')) : [])

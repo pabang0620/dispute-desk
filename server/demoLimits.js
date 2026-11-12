@@ -3,6 +3,8 @@
 const PER_IP_HOUR = Number(process.env.CHAT_PER_IP_HOUR || 40)
 const PER_DAY = Number(process.env.CHAT_PER_DAY || 300)
 const HOUR_MS = 3_600_000
+import { modes } from './config.js'
+import { liveGuard } from './liveGuard.js'
 
 const hitsByIp = new Map()
 let dayKey = ''
@@ -33,4 +35,17 @@ export function writeLimiter(_req, res, next) {
   if (writes.length >= WRITES_PER_HOUR) return res.status(429).json({ success: false, message: 'Too many PayPal actions this hour. Try the Recorded run.' })
   writes.push(now)
   next()
+}
+
+export const LIVE_LIMIT_REASON = 'live limit reached'
+
+/**
+ * Decides how one user action is answered: { forceMock, reason }. forceMock true means no live call (recorded run or
+ * stand-in). `count: false` is for the continuation of an action already counted (Studio returning tool results).
+ */
+export function planModelUse(req, { count = true } = {}) {
+  if (!count) return { forceMock: false, reason: '' }
+  if (agentLimiter(req)) return { forceMock: true, reason: LIVE_LIMIT_REASON }
+  if (modes.llm === 'live' && !liveGuard.tryAcquire(req.ip)) return { forceMock: true, reason: LIVE_LIMIT_REASON }
+  return { forceMock: false, reason: '' }
 }
